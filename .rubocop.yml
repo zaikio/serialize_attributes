@@ -1,0 +1,13 @@
+AllCops:
+  TargetRubyVersion: 3.0
+  DisplayCopNames: true
+  DisplayStyleGuide: true
+  NewCops: enable
+  Exclude:
+    - test/dummy/**/*
+
+require:
+  - rubocop-rails
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes

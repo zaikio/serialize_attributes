@@ -1,0 +1,96 @@
+version: 2.1
+jobs:
+  build:
+    docker:
+      - image: circleci/ruby:3.0.2
+        environment:
+          PGHOST: 127.0.0.1
+          PGUSER: circleci
+          RAILS_ENV: test
+      - image: circleci/postgres:11
+        environment:
+          POSTGRES_USER: circleci
+          POSTGRES_DB: json_store_test
+          POSTGRES_PASSWORD: ""
+          POSTGRES_HOST_AUTH_METHOD: trust
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "Gemfile.lock" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
+
+      - run:
+          name: install dependencies
+          command: gem install bundler
+
+      - save_cache:
+          paths:
+            - ./vendor/bundle
+          key: v1-dependencies-{{ checksum "Gemfile.lock" }}
+
+      - run: sudo apt install postgresql-client
+      - run: dockerize -wait tcp://localhost:5432 -timeout 1m
+      - run: bundle exec rake db:create
+      - run: bundle exec rake db:schema:load
+
+      - run: bundle exec rubocop
+      # run tests!
+      - run:
+          name: run tests
+          command: |
+            bundle exec rake test
+
+  publish:
+    docker:
+      - image: circleci/ruby:2.6.5
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run:
+          name: Write credentials config
+          command: |
+            mkdir ~/.gem && \
+              printf %b "---\n:github: Bearer $BUNDLE_RUBYGEMS__PKG__GITHUB__COM\n" > ~/.gem/credentials
+      - run:
+          name: Set file permissions on credentials file
+          command: |
+            chmod 0600 ~/.gem/credentials
+      - run:
+          name: Build package
+          command: gem build zaikio-toolkit.gemspec
+      - run:
+          name: Push package
+          command: |
+            VERSION=$(ruby -r "./lib/zaikio/toolkit/version.rb" -e "print Zaikio::Toolkit::VERSION")
+            gem push --key github --host https://rubygems.pkg.github.com/zaikio zaikio-toolkit-${VERSION}.gem
+            curl \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Personal $BUNDLE_RUBYGEMS__PKG__GITHUB__COM" \
+              -d "{\"name\": \"zaikio-toolkit\", \"version\": \"$VERSION\", \"package-manager\": \"bundler\"}" \
+              https://api.dependabot.com/release_notifications/private
+
+workflows:
+  default:
+    jobs:
+      - build:
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              only: /.*/
+      - publish:
+          context:
+            - github-packages
+          requires:
+            - build
+          filters:
+            tags:
+              only: /^v\d+\.\d+\.\d+/
+            branches:
+              ignore: /.*/
