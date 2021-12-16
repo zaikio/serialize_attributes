@@ -49,32 +49,18 @@ jobs:
 
   publish:
     docker:
-      - image: circleci/ruby:2.6.5
+      - image: cimg/ruby:3.0.3
     working_directory: ~/repo
     steps:
       - checkout
       - run:
-          name: Write credentials config
-          command: |
-            mkdir ~/.gem && \
-              printf %b "---\n:github: Bearer $BUNDLE_RUBYGEMS__PKG__GITHUB__COM\n" > ~/.gem/credentials
-      - run:
-          name: Set file permissions on credentials file
-          command: |
-            chmod 0600 ~/.gem/credentials
-      - run:
           name: Build package
-          command: gem build zaikio-toolkit.gemspec
+          command: gem build serialized_attributes.gemspec
       - run:
           name: Push package
           command: |
-            VERSION=$(ruby -r "./lib/zaikio/toolkit/version.rb" -e "print Zaikio::Toolkit::VERSION")
-            gem push --key github --host https://rubygems.pkg.github.com/zaikio zaikio-toolkit-${VERSION}.gem
-            curl \
-              -H "Content-Type: application/json" \
-              -H "Authorization: Personal $BUNDLE_RUBYGEMS__PKG__GITHUB__COM" \
-              -d "{\"name\": \"zaikio-toolkit\", \"version\": \"$VERSION\", \"package-manager\": \"bundler\"}" \
-              https://api.dependabot.com/release_notifications/private
+            VERSION=$(ruby -r "./lib/serialized_attributes/version.rb" -e "print SerializedAttributes::VERSION")
+            gem push serialized_attributes-${VERSION}.gem
 
 workflows:
   default:
@@ -87,7 +73,7 @@ workflows:
               only: /.*/
       - publish:
           context:
-            - github-packages
+            - rubygems-push
           requires:
             - build
           filters:
