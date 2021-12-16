@@ -10,7 +10,7 @@ jobs:
       - image: cimg/postgres:14.1
         environment:
           POSTGRES_USER: circleci
-          POSTGRES_DB: json_store_test
+          POSTGRES_DB: serialized_attributes_test
           POSTGRES_PASSWORD: ""
           POSTGRES_HOST_AUTH_METHOD: trust
 

@@ -1,30 +1,30 @@
-# json-store
+# serialized_attributes
 
-json-store provides simple read/write methods delegating to a Hash object on your
-ActiveModel/ActiveRecord models:
+Serialize ActiveModel attributes in JSON using type casting:
 
 ```ruby
 class MyModel
-  json_store :settings do
+  serialize_attributes :settings do
     attribute :user_name, :string
     attribute :subscribed, :boolean, default: false
   end
 end
 ```
 
-> Unlike similar projects like [`ActiveRecord::TypedStore`][typed-store], underneath this
-> library doesn't  use the `store` interface and instead uses the native type coercion
-> provided by ActiveModel, as long as you have a column it recognises as a Hash.
+> Unlike similar projects like [`ActiveRecord::TypedStore`](https://github.com/byroot/activerecord-typedstore),
+> underneath this library doesn't  use the `store` interface and instead uses the native
+> type coercion provided by ActiveModel (as long as you have an attribute recognised as a
+> Hash-like object).
 
 ## Quickstart
 
-Add `json-store` to your Gemfile:
+Add `serialized_atributes` to your Gemfile:
 
 ```bash
-$ bundle add json-store
+$ bundle add serialized_atributes
 ```
 
-Next, include `JsonStore` in your model class (or `ApplicationRecord` if you want to make
+Next, include `SerializedAttributes` in your model class (or `ApplicationRecord` if you want to make
 it available everywhere). Your model should have a JSON (or JSONB) attribute, for example
 this one is called `settings`:
 
@@ -38,9 +38,9 @@ Then, tell the model what attributes we'll be storing there:
 
 ```ruby
 class MyModel < ActiveRecord::Base
-  include JsonStore
+  include SerializedAttributes
 
-  json_store :settings do
+  serialize_attributes :settings do
     attribute :user_name, :string
     attribute :subscribed, :boolean, default: false
   end
@@ -69,17 +69,17 @@ method to get the full object including default values:
 
 ```ruby
 record = MyModel.new(user_name: "Nick")
-record.json_store_attributes(:settings)
+record.serialized_attributes_on(:settings)
 #=> { user_name: "Nick", subscribed: false }
 ```
 
 ### Getting a list of attribute names
 
 If you wish to programmatically get the list of attributes known to a store, you can use
-`.json_store_attribute_names`. The list is returned in order of definition:
+`.serialized_attribute_names`. The list is returned in order of definition:
 
 ```ruby
-MyModel.json_store_attribute_names(:settings)
+MyModel.serialized_attribute_names(:settings)
 #=> [:user_name, :subscribed]
 ```
 
@@ -111,7 +111,7 @@ ActiveRecord::Type.register(:money, MoneyType)
 
 ```ruby
 class MyModel
-  json_store :settings do
+  serialize_attributes :settings do
     attribute :price_in_cents, :money
   end
 end
@@ -125,13 +125,13 @@ It's also possible to use this library without `ActiveRecord`:
 class MyModel
   include ActiveModel::Model
   include ActiveModel::Attributes
-  include JsonStore
+  include SerializedAttributes
 
   # ActiveModel doesn't include a native Hash type, we can just use the Value
   # type here for demo purposes:
   attribute :settings, ActiveModel::Type::Value
 
-  json_store :settings do
+  serialize_attributes :settings do
     attribute :user_name, :string
   end
 end
@@ -139,5 +139,3 @@ end
 
 ## License
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
-
-[typed-store]: https://github.com/byroot/activerecord-typedstore

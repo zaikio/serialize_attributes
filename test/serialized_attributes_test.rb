@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-class JsonStoreTest < ActiveSupport::TestCase
+class SerializedAttributesTest < ActiveSupport::TestCase
   test "loading and reloading a complex model" do
     record = MyModel.create!(normal_column: "yes", data: { "booly" => false, "stringy" => "present" })
 
@@ -37,7 +37,7 @@ class JsonStoreTest < ActiveSupport::TestCase
     second = Class.new(MyModel) do
       self.table_name = :my_models
 
-      json_store :data do
+      serialize_attributes :data do
         attribute :defaulty_block, :string, default: -> { secret }
       end
 
@@ -54,11 +54,11 @@ class JsonStoreTest < ActiveSupport::TestCase
     local = Class.new do
       include ActiveModel::Model
       include ActiveModel::Attributes
-      include JsonStore
+      include SerializedAttributes
 
       attribute :settings, ActiveModel::Type::Value.new
 
-      json_store :settings do
+      serialize_attributes :settings do
         attribute :user_name, :string
       end
     end
@@ -71,7 +71,7 @@ class JsonStoreTest < ActiveSupport::TestCase
     assert_equal({ "user_name" => "Nick" }, record.settings)
   end
 
-  test "#json_store_attributes" do
+  test "#serialized_attributes_on" do
     record = MyModel.create!(normal_column: "yes", data: { "booly" => false, "timestamp" => Time.zone.at(0) })
 
     assert_equal(
@@ -81,17 +81,17 @@ class JsonStoreTest < ActiveSupport::TestCase
         stringy: nil,
         timestamp: Time.zone.at(0)
       },
-      record.json_store_attributes(:data)
+      record.serialized_attributes_on(:data)
     )
   end
 
-  test ".json_store_attribute_names" do
+  test ".serialized_attribute_names" do
     assert_equal %i[booly booly_default stringy timestamp],
-                 MyModel.json_store_attribute_names(:data)
+                 MyModel.serialized_attribute_names(:data)
   end
 
   test "json store is immutable once setup" do
-    store = MyModel.json_store_for(:data)
+    store = MyModel.serialized_attributes_store(:data)
     assert_raises(FrozenError) { store.instance_variable_set(:@attributes, {}) }
     assert_raises(FrozenError) { store.instance_variable_set(:@model_class, "value") }
     assert_raises(NoMethodError) { store.attribute(:foo, :string) }

@@ -1,5 +1,5 @@
 class MyModel < ApplicationRecord
-  json_store :data do
+  serialize_attributes :data do
     attribute :booly, :boolean
     attribute :booly_default, :boolean, default: true
 

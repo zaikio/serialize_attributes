@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    json-store (0.1.0)
+    serialized_attributes (0.1.0)
       activemodel (>= 6)
 
 GEM
@@ -169,13 +169,13 @@ PLATFORMS
   x86_64-darwin-21
 
 DEPENDENCIES
-  json-store!
   pg
   pry-byebug
   rails
   rake
   rubocop
   rubocop-rails
+  serialized_attributes!
 
 BUNDLED WITH
    2.2.30
