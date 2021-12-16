@@ -11,3 +11,6 @@ require:
 
 Style/StringLiterals:
   EnforcedStyle: double_quotes
+
+Gemspec/RequireMFA:
+  Enabled: false
