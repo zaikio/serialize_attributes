@@ -1,4 +1,4 @@
-# serialized_attributes
+# serialize_attributes
 
 Serialize ActiveModel attributes in JSON using type casting:
 
@@ -24,7 +24,7 @@ Add `serialized_atributes` to your Gemfile:
 $ bundle add serialized_atributes
 ```
 
-Next, include `SerializedAttributes` in your model class (or `ApplicationRecord` if you want to make
+Next, include `SerializeAttributes` in your model class (or `ApplicationRecord` if you want to make
 it available everywhere). Your model should have a JSON (or JSONB) attribute, for example
 this one is called `settings`:
 
@@ -38,7 +38,7 @@ Then, tell the model what attributes we'll be storing there:
 
 ```ruby
 class MyModel < ActiveRecord::Base
-  include SerializedAttributes
+  include SerializeAttributes
 
   serialize_attributes :settings do
     attribute :user_name, :string
@@ -125,7 +125,7 @@ It's also possible to use this library without `ActiveRecord`:
 class MyModel
   include ActiveModel::Model
   include ActiveModel::Attributes
-  include SerializedAttributes
+  include SerializeAttributes
 
   # ActiveModel doesn't include a native Hash type, we can just use the Value
   # type here for demo purposes:

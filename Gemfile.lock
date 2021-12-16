@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    serialized_attributes (0.1.0)
+    serialize_attributes (0.1.0)
       activemodel (>= 6)
 
 GEM
@@ -175,7 +175,7 @@ DEPENDENCIES
   rake
   rubocop
   rubocop-rails
-  serialized_attributes!
+  serialize_attributes!
 
 BUNDLED WITH
    2.2.30

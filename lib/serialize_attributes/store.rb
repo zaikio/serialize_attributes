@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-module SerializedAttributes
-  # SerializedAttributes::Store is the individual store, keyed by name. You can get a
+module SerializeAttributes
+  # SerializeAttributes::Store is the individual store, keyed by name. You can get a
   # reference to the store by calling `Model.serialized_attributes_store(column_name)`.
   class Store
     def initialize(model_class, column_name, &block) # :nodoc:

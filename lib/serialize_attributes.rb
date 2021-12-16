@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-require "serialized_attributes/version"
-require "serialized_attributes/store"
+require "serialize_attributes/version"
+require "serialize_attributes/store"
 
 # Serialize ActiveModel attributes in JSON using type casting
-module SerializedAttributes
+module SerializeAttributes
   extend ActiveSupport::Concern
 
   class_methods do
-    # Configure a SerializedAttributes::Store, using the given column to store each
+    # Configure a SerializeAttributes::Store, using the given column to store each
     # attribute.
     #
     #   class Person
@@ -25,7 +25,7 @@ module SerializedAttributes
       @serialized_attribute_stores[column_name] = Store.new(self, column_name, &block)
     end
 
-    # Retrieve a SerializedAttributes registered against the given column
+    # Retrieve a SerializeAttributes registered against the given column
     #
     #   Person.serialized_attributes_store(:settings)
     def serialized_attributes_store(column_name)
@@ -40,7 +40,7 @@ module SerializedAttributes
     end
   end
 
-  # Retrieve all of the SerializedAttributes attributes, including their default values
+  # Retrieve all of the SerializeAttributes attributes, including their default values
   #
   #   person = Person.new
   #   person.serialized_attributes_on(:settings)

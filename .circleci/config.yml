@@ -10,7 +10,7 @@ jobs:
       - image: cimg/postgres:14.1
         environment:
           POSTGRES_USER: circleci
-          POSTGRES_DB: serialized_attributes_test
+          POSTGRES_DB: serialize_attributes_test
           POSTGRES_PASSWORD: ""
           POSTGRES_HOST_AUTH_METHOD: trust
 
@@ -55,12 +55,12 @@ jobs:
       - checkout
       - run:
           name: Build package
-          command: gem build serialized_attributes.gemspec
+          command: gem build serialize_attributes.gemspec
       - run:
           name: Push package
           command: |
-            VERSION=$(ruby -r "./lib/serialized_attributes/version.rb" -e "print SerializedAttributes::VERSION")
-            gem push serialized_attributes-${VERSION}.gem
+            VERSION=$(ruby -r "./lib/serialize_attributes/version.rb" -e "print SerializeAttributes::VERSION")
+            gem push serialize_attributes-${VERSION}.gem
 
 workflows:
   default:
