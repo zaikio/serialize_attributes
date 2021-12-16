@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-class SerializedAttributesTest < ActiveSupport::TestCase
+class SerializeAttributesTest < ActiveSupport::TestCase
   test "loading and reloading a complex model" do
     record = MyModel.create!(normal_column: "yes", data: { "booly" => false, "stringy" => "present" })
 
@@ -54,7 +54,7 @@ class SerializedAttributesTest < ActiveSupport::TestCase
     local = Class.new do
       include ActiveModel::Model
       include ActiveModel::Attributes
-      include SerializedAttributes
+      include SerializeAttributes
 
       attribute :settings, ActiveModel::Type::Value.new
 
