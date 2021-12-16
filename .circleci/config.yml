@@ -2,18 +2,19 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image: circleci/ruby:3.0.2
+      - image: cimg/ruby:3.0.3
         environment:
           PGHOST: 127.0.0.1
           PGUSER: circleci
           RAILS_ENV: test
-      - image: circleci/postgres:11
+      - image: cimg/postgres:14.1
         environment:
           POSTGRES_USER: circleci
           POSTGRES_DB: json_store_test
           POSTGRES_PASSWORD: ""
           POSTGRES_HOST_AUTH_METHOD: trust
 
+    resource_class: small
     working_directory: ~/repo
 
     steps:
@@ -27,7 +28,7 @@ jobs:
 
       - run:
           name: install dependencies
-          command: gem install bundler
+          command: gem install bundler && bundle install
 
       - save_cache:
           paths:
