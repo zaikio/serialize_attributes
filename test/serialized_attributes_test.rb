@@ -10,6 +10,8 @@ class SerializeAttributesTest < ActiveSupport::TestCase
     assert_equal false, record.booly
     assert_equal true, record.booly_default
     assert_equal "present", record.stringy
+    assert_equal [], record.listy
+    assert_equal ["first"], record.listy_default
 
     record.save!
     record.reload
@@ -17,6 +19,26 @@ class SerializeAttributesTest < ActiveSupport::TestCase
     assert_equal false, record.booly
     assert_equal true, record.booly_default
     assert_equal "present", record.stringy
+  end
+
+  test "arrays can be created, modified and emptied" do
+    record = MyModel.create!(listy: %w[foo bar], listy_default: %w[second])
+
+    assert_equal %w[foo bar], record.listy
+    assert_equal %w[second], record.listy_default
+
+    record.listy << "baz"
+    assert_equal %w[foo bar baz], record.listy
+
+    record.save!
+    record.reload
+
+    assert_equal %w[foo bar baz], record.listy
+
+    record.update!(listy: nil, listy_default: nil)
+
+    assert_equal [], record.listy
+    assert_equal ["first"], record.listy_default
   end
 
   test "casting to & from the database" do
@@ -79,14 +101,16 @@ class SerializeAttributesTest < ActiveSupport::TestCase
         booly: false,
         booly_default: true,
         stringy: nil,
-        timestamp: Time.zone.at(0)
+        timestamp: Time.zone.at(0),
+        listy: [],
+        listy_default: ["first"]
       },
       record.serialized_attributes_on(:data)
     )
   end
 
   test ".serialized_attribute_names" do
-    assert_equal %i[booly booly_default stringy timestamp],
+    assert_equal %i[booly booly_default stringy timestamp listy listy_default],
                  MyModel.serialized_attribute_names(:data)
   end
 
