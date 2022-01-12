@@ -50,10 +50,17 @@ module SerializeAttributes
 
     def attribute(name, type, **options)
       name = name.to_sym
+      arr  = options.delete(:array) { false }
       type = ActiveModel::Type.lookup(type, **options.except(:default)) if type.is_a?(Symbol)
+      type = ArrayWrapper.new(type) if arr
 
       @attributes[name] = type
-      @defaults[name] = options[:default] if options.key?(:default)
+
+      if options.key?(:default)
+        @defaults[name] = options[:default]
+      elsif arr
+        @defaults[name] = []
+      end
 
       @model_class.module_eval <<~RUBY, __FILE__, __LINE__ + 1
         def #{name}                                          # def user_name
@@ -72,12 +79,33 @@ module SerializeAttributes
             .serialized_attributes_store(:#{@column_name})   #     .serialized_attributes_store(:settings)
             .cast(:#{name}, value)                           #     .cast(:user_name, value)
           store = public_send(:#{@column_name})              #   store = public_send(:settings)
-          self.public_send(                                  #   self.public_send(
-            :#{@column_name}=,                               #     :settings=,
-            store.merge("#{name}" => cast_value)             #     store.merge("user_name" => cast_value)
-          )                                                  #   )
+                                                             #
+          if #{arr} && cast_value == ArrayWrapper::EMPTY     #   if false && cast_value == ArrayWrapper::EMPTY
+            store.delete("#{name}")                          #     store.delete("user_name")
+          else                                               #   else
+            store.merge!("#{name}" => cast_value)            #     store.merge!("user_name" => cast_value)
+          end                                                #   end
+                                                             #
+          self.public_send(:#{@column_name}=, store)         #   self.public_send(:settings=, store)
         end                                                  # end
       RUBY
+    end
+
+    class ArrayWrapper < SimpleDelegator # :nodoc:
+      EMPTY = Object.new
+
+      def cast(value)
+        # We don't want to store the null value, because array types _always_ have a default
+        # configured. So we return this special object here, and check it again before
+        # updating the underlying store.
+        return EMPTY unless value
+
+        Array(value)
+      end
+
+      def deserialize(value)
+        value.map { __getobj__.deserialize(_1) }
+      end
     end
 
     class StoreColumnWrapper < SimpleDelegator # :nodoc:

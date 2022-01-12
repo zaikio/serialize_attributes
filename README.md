@@ -117,6 +117,26 @@ class MyModel
 end
 ```
 
+### Array types
+
+By default, `ActiveModel::Attribute` does not support Array types, however this library
+does. The syntax is the same as `ActiveRecord::Attribute` when using the Postgres adapter:
+
+```ruby
+class MyModel
+  serialize_attributes :settings do
+    attribute :emails, :string, array: true
+  end
+end
+```
+
+Please note that the default value for an array attribute is always `[]`, unless you
+specify a `default` attribute yourself explicitly:
+
+```ruby
+attribute :emails, :string, array: true, default: ["unknown@example.com"]
+```
+
 ### Usage with ActiveModel alone
 
 It's also possible to use this library without `ActiveRecord`:
