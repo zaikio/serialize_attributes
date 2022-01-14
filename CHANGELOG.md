@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+* Add `type` parameter to `serialized_attribute_names` to filter by type.
+
 ## [0.2.0] - 2022-01-12
 
 * Add support for `array: true` when specifying attributes

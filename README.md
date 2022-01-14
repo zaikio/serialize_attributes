@@ -83,6 +83,13 @@ MyModel.serialized_attribute_names(:settings)
 #=> [:user_name, :subscribed]
 ```
 
+You can also get a list of the attributes filtered by a type specifier:
+
+```ruby
+MyModel.serialized_attribute_names(:settings, :boolean)
+#=> [:subscribed]
+```
+
 ### Complex types
 
 Underneath, we use the `ActiveModel::Type` mechanism for type coercion, which means
