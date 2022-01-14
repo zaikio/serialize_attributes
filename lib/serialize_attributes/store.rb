@@ -15,8 +15,33 @@ module SerializeAttributes
       [self, @attributes, @defaults].each(&:freeze)
     end
 
-    # Get a list of the attributes managed by this store
-    def attribute_names = @attributes.keys
+    # Get a list of the attributes managed by this store. Pass an optional `type` argument
+    # to filter attributes by their type.
+    #
+    #   Model.serialize_attributes_store(:settings).attribute_names
+    #   => [:user_name, :subscribed]
+    #
+    #   Model.serialize_attributes_store(:settings).attribute_names(:string)
+    #   => [:user_name]
+    def attribute_names(type = nil)
+      if type
+        type = ActiveModel::Type.lookup(type)&.class if type.is_a?(Symbol)
+        @attributes.select do |_, v|
+          v.is_a?(type)
+        end
+      else
+        @attributes
+      end.keys
+    end
+
+    # Get a list of attributes of a certain type
+    #
+    #   Model.serialize_attributes_store(:settings).attributes_of_type(:string)
+    #   => [:user_name]
+    def attributes_of_type(type)
+      type = ActiveModel::Type.lookup(type) if type.is_a?(Symbol)
+      @attributes.select { |_, v| v.is_a?(type) }.keys
+    end
 
     # Cast a stored attribute against a given name
     #

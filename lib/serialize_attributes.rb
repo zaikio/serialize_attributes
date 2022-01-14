@@ -34,9 +34,10 @@ module SerializeAttributes
 
     # Get a list of the attributes registered in a given store
     #
-    #   Person.serialized_attribute_names(:settings)
-    def serialized_attribute_names(column_name)
-      serialized_attributes_store(column_name).attribute_names
+    #   Person.serialized_attribute_names(:settings, :string)
+    #   => [:user_name]
+    def serialized_attribute_names(column_name, type = nil)
+      serialized_attributes_store(column_name).attribute_names(type)
     end
   end
 
