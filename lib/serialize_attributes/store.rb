@@ -151,14 +151,18 @@ module SerializeAttributes
 
     # This method wraps the original store column and catches the `deserialize` call -
     # this gives us a chance to convert the data in the database back into our types.
+    #
+    # We're using the block form of `.attribute` to avoid loading the database schema just
+    # to figure out our wrapping type.
     def wrap_store_column
       return unless @model_class.respond_to?(:attribute_types)
 
-      original_store_column_type = @model_class.attribute_types.fetch(@column_name.to_s)
-      @model_class.attribute(@column_name, StoreColumnWrapper.new(
-                                             original_store_column_type,
-                                             self
-                                           ))
+      store = self
+
+      @model_class.attribute(@column_name) do
+        original_type = @model_class.attribute_types.fetch(@column_name.to_s)
+        StoreColumnWrapper.new(original_type, store)
+      end
     end
   end
 end
