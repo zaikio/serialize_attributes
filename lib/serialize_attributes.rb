@@ -37,7 +37,7 @@ module SerializeAttributes
     #   Person.serialized_attribute_names(:settings, :string)
     #   => [:user_name]
     def serialized_attribute_names(column_name, type = nil)
-      serialized_attributes_store(column_name).attribute_names(type)
+      serialized_attributes_store(column_name).attribute_names(type: type)
     end
   end
 

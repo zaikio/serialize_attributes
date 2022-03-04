@@ -4,7 +4,8 @@ module SerializeAttributes
   # SerializeAttributes::Store is the individual store, keyed by name. You can get a
   # reference to the store by calling `Model.serialized_attributes_store(column_name)`.
   class Store
-    def initialize(model_class, column_name, &block) # :nodoc:
+    def initialize(model_class, column_name, &block)
+      # :nodoc:
       @model_class = model_class
       @column_name = column_name
       @attributes = {}
@@ -19,28 +20,33 @@ module SerializeAttributes
     # to filter attributes by their type.
     #
     #   Model.serialize_attributes_store(:settings).attribute_names
-    #   => [:user_name, :subscribed]
+    #   => [:user_name, :subscribed, :subscriptions]
     #
-    #   Model.serialize_attributes_store(:settings).attribute_names(:string)
-    #   => [:user_name]
-    def attribute_names(type = nil)
+    #   Model.serialize_attributes_store(:settings).attribute_names(type: :string)
+    #   => [:user_name, :subscriptions]
+    #
+    #  Model.serialize_attributes_store(:settings).attribute_names(type: :string, array: true)
+    #  => [:subscriptions]
+    #
+    #  Model.serialize_attributes_store(:settings).attribute_names(type: :string, array: false)
+    #  => [:user_name]
+    #
+    #
+    def attribute_names(type: nil, array: nil)
+      attributes = if array.nil?
+                     @attributes
+                   else
+                     @attributes.select { |_, v| v.is_a?(ArrayWrapper) == array }
+                   end
       if type
         type = ActiveModel::Type.lookup(type)&.class if type.is_a?(Symbol)
-        @attributes.select do |_, v|
+        attributes.select do |_, v|
+          v = v.__getobj__ if v.is_a?(ArrayWrapper)
           v.is_a?(type)
         end
       else
-        @attributes
+        attributes
       end.keys
-    end
-
-    # Get a list of attributes of a certain type
-    #
-    #   Model.serialize_attributes_store(:settings).attributes_of_type(:string)
-    #   => [:user_name]
-    def attributes_of_type(type)
-      type = ActiveModel::Type.lookup(type) if type.is_a?(Symbol)
-      @attributes.select { |_, v| v.is_a?(type) }.keys
     end
 
     # Cast a stored attribute against a given name
@@ -75,7 +81,7 @@ module SerializeAttributes
 
     def attribute(name, type, **options)
       name = name.to_sym
-      arr  = options.delete(:array) { false }
+      arr = options.delete(:array) { false }
       type = ActiveModel::Type.lookup(type, **options.except(:default)) if type.is_a?(Symbol)
       type = ArrayWrapper.new(type) if arr
 
@@ -134,7 +140,8 @@ module SerializeAttributes
     end
 
     class StoreColumnWrapper < SimpleDelegator # :nodoc:
-      def initialize(original, store) # rubocop:disable Lint/MissingSuper
+      def initialize(original, store)
+        # rubocop:disable Lint/MissingSuper
         __setobj__(original)
         @store = store
       end

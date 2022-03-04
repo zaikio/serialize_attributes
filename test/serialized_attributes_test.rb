@@ -103,18 +103,34 @@ class SerializeAttributesTest < ActiveSupport::TestCase
         stringy: nil,
         timestamp: Time.zone.at(0),
         listy: [],
-        listy_default: ["first"]
+        listy_default: ["first"],
+        listy_integer: []
       },
       record.serialized_attributes_on(:data)
     )
   end
 
   test ".serialized_attribute_names" do
-    assert_equal %i[booly booly_default stringy timestamp listy listy_default],
+    assert_equal %i[booly booly_default stringy timestamp listy listy_default listy_integer],
                  MyModel.serialized_attribute_names(:data)
 
     assert_equal %i[booly booly_default], MyModel.serialized_attribute_names(:data, :boolean)
-    assert_equal [:stringy], MyModel.serialized_attribute_names(:data, ActiveModel::Type::String)
+    assert_equal %i[stringy listy listy_default], MyModel.serialized_attribute_names(:data, ActiveModel::Type::String)
+  end
+
+  test "Store.attribute_names with array: true/false" do
+    assert_equal %i[booly booly_default stringy timestamp listy listy_default listy_integer],
+                 MyModel.serialized_attributes_store(:data).attribute_names
+
+    assert_equal %i[listy listy_default listy_integer], MyModel.serialized_attributes_store(:data).attribute_names( array: true)
+  end
+  test "Store.attribute_names with type and array: true/false" do
+    assert_equal %i[booly booly_default stringy timestamp listy listy_default listy_integer],
+                 MyModel.serialized_attributes_store(:data).attribute_names
+
+    assert_equal %i[listy listy_default listy_integer], MyModel.serialized_attributes_store(:data).attribute_names(array: true)
+    assert_equal %i[listy listy_default], MyModel.serialized_attributes_store(:data).attribute_names(type: :string, array: true)
+    assert_equal %i[stringy], MyModel.serialized_attributes_store(:data).attribute_names(type: :string, array: false)
   end
 
   test "json store is immutable once setup" do
