@@ -118,21 +118,6 @@ class SerializeAttributesTest < ActiveSupport::TestCase
     assert_equal %i[stringy listy listy_default], MyModel.serialized_attribute_names(:data, ActiveModel::Type::String)
   end
 
-  test "Store.attribute_names with array: true/false" do
-    assert_equal %i[booly booly_default stringy timestamp listy listy_default listy_integer],
-                 MyModel.serialized_attributes_store(:data).attribute_names
-
-    assert_equal %i[listy listy_default listy_integer], MyModel.serialized_attributes_store(:data).attribute_names( array: true)
-  end
-  test "Store.attribute_names with type and array: true/false" do
-    assert_equal %i[booly booly_default stringy timestamp listy listy_default listy_integer],
-                 MyModel.serialized_attributes_store(:data).attribute_names
-
-    assert_equal %i[listy listy_default listy_integer], MyModel.serialized_attributes_store(:data).attribute_names(array: true)
-    assert_equal %i[listy listy_default], MyModel.serialized_attributes_store(:data).attribute_names(type: :string, array: true)
-    assert_equal %i[stringy], MyModel.serialized_attributes_store(:data).attribute_names(type: :string, array: false)
-  end
-
   test "json store is immutable once setup" do
     store = MyModel.serialized_attributes_store(:data)
     assert_raises(FrozenError) { store.instance_variable_set(:@attributes, {}) }

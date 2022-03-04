@@ -33,17 +33,10 @@ module SerializeAttributes
     #
     #
     def attribute_names(type: nil, array: nil)
-      attributes = if array.nil?
-                     @attributes
-                   else
-                     @attributes.select { |_, v| v.is_a?(ArrayWrapper) == array }
-                   end
+      attributes = @attributes
+      attributes = @attributes.select { |_, v| v.is_a?(ArrayWrapper) == array } unless array.nil?
       if type
-        type = ActiveModel::Type.lookup(type)&.class if type.is_a?(Symbol)
-        attributes.select do |_, v|
-          v = v.__getobj__ if v.is_a?(ArrayWrapper)
-          v.is_a?(type)
-        end
+        attributes_for_type(attributes, type)
       else
         attributes
       end.keys
@@ -78,6 +71,14 @@ module SerializeAttributes
     end
 
     private
+
+    def attributes_for_type(attributes, type)
+      type = ActiveModel::Type.lookup(type)&.class if type.is_a?(Symbol)
+      attributes.select do |_, v|
+        v = v.__getobj__ if v.is_a?(ArrayWrapper)
+        v.is_a?(type)
+      end
+    end
 
     def attribute(name, type, **options)
       name = name.to_sym
@@ -140,12 +141,13 @@ module SerializeAttributes
     end
 
     class StoreColumnWrapper < SimpleDelegator # :nodoc:
+      # rubocop:disable Lint/MissingSuper
       def initialize(original, store)
-        # rubocop:disable Lint/MissingSuper
         __setobj__(original)
         @store = store
       end
 
+      # rubocop:enable Lint/MissingSuper
       def deserialize(...)
         result = __getobj__.deserialize(...)
         return result unless @store && result.respond_to?(:each)
