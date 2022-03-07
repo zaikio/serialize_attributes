@@ -141,13 +141,11 @@ module SerializeAttributes
     end
 
     class StoreColumnWrapper < SimpleDelegator # :nodoc:
-      # rubocop:disable Lint/MissingSuper
-      def initialize(original, store)
+      def initialize(original, store) # rubocop:disable Lint/MissingSuper
         __setobj__(original)
         @store = store
       end
 
-      # rubocop:enable Lint/MissingSuper
       def deserialize(...)
         result = __getobj__.deserialize(...)
         return result unless @store && result.respond_to?(:each)
