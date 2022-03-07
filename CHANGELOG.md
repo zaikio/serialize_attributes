@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0]
+
+* Add support for listing array attributes
+
 ## [0.3.1]
 
 * Don't raise an error when used with ActiveRecord models where the schema has not yet loaded
