@@ -8,5 +8,7 @@ class MyModel < ApplicationRecord
 
     attribute :listy, :string, array: true
     attribute :listy_default, :string, array: true, default: ["first"]
+
+    attribute :listy_integer, :integer, array: true
   end
 end

@@ -7,6 +7,7 @@ class MyModel
   serialize_attributes :settings do
     attribute :user_name, :string
     attribute :subscribed, :boolean, default: false
+    attribute :subscriptions, :string, array: true 
   end
 end
 ```
