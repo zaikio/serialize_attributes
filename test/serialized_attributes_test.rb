@@ -2,6 +2,7 @@
 
 require "test_helper"
 
+# rubocop:disable Metrics/ClassLength
 class SerializeAttributesTest < ActiveSupport::TestCase
   test "loading and reloading a complex model" do
     record = MyModel.create!(normal_column: "yes", data: { "booly" => false, "stringy" => "present" })
@@ -41,7 +42,7 @@ class SerializeAttributesTest < ActiveSupport::TestCase
     assert_equal ["first"], record.listy_default
   end
 
-  test "casting to & from the database" do
+  test "casting to & from the database with timestamp" do
     timestamp = Time.zone.at(0)
     record = MyModel.create!(data: { timestamp: timestamp })
 
@@ -49,10 +50,25 @@ class SerializeAttributesTest < ActiveSupport::TestCase
 
     record.timestamp = Time.zone.at(1)
     record.save!
-
     record.reload
 
     assert_equal Time.zone.at(1), record.timestamp
+  end
+
+  test "casting to and from the database with bigdecimal" do
+    klass = Class.new(MyModel) do
+      serialize_attributes :data do
+        attribute :height, :decimal
+      end
+    end
+    record = klass.new(height: BigDecimal("0.42"))
+
+    assert_equal BigDecimal("0.42"), record.height
+
+    record.save!
+    record.reload
+
+    assert_equal BigDecimal("0.42"), record.height
   end
 
   test "defaults supports a Proc referencing other parts of the record" do
@@ -82,15 +98,20 @@ class SerializeAttributesTest < ActiveSupport::TestCase
 
       serialize_attributes :settings do
         attribute :user_name, :string
+        attribute :height,    :decimal
       end
     end
 
     record = local.new(settings: {})
 
     assert_nil record.user_name
+
     record.user_name = "Nick"
+    record.height = BigDecimal("42.690")
+
     assert_equal "Nick", record.user_name
-    assert_equal({ "user_name" => "Nick" }, record.settings)
+    assert_equal BigDecimal("42.690"), record.height
+    assert_equal({ "user_name" => "Nick", "height" => BigDecimal("42.690") }, record.settings)
   end
 
   test "#serialized_attributes_on" do
@@ -125,3 +146,4 @@ class SerializeAttributesTest < ActiveSupport::TestCase
     assert_raises(NoMethodError) { store.attribute(:foo, :string) }
   end
 end
+# rubocop:enable Metrics/ClassLength

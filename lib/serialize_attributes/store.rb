@@ -47,6 +47,8 @@ module SerializeAttributes
     #    Model.serialized_attributes_store(:settings).cast(:user_name, 42)
     #    => "42"
     def cast(name, value)
+      # @attributes[name.to_sym] returns the Type as defined in ActiveModel::Type.
+      # Type::Integer.new.cast("42") => 42
       @attributes[name.to_sym].cast(value)
     end
 
@@ -96,7 +98,18 @@ module SerializeAttributes
 
       @model_class.module_eval <<~RUBY, __FILE__, __LINE__ + 1
         def #{name}                                          # def user_name
-          store = public_send(:#{@column_name})              #   store = public_send(:settings)
+          if public_send(:respond_to?, :changed?)            #   if respond_to?(:changed?)
+            store =                                          #     store =
+              public_send(:read_attribute_before_type_cast,  #       read_attribute_before_type_cast(:settings)
+                          :#{@column_name})                  #
+          else                                               #   else
+            store = public_send(:#{@column_name})            #     store = public_send(:settings)
+          end                                                #   end
+                                                             #
+          if store.is_a?(String)                             #   store.is_a?(String)
+            store = public_send(:#{@column_name})            #     store = public_send(:settings)
+          end                                                #   end
+                                                             #
           if store.key?("#{name}")                           #   if store.key?("user_name")
             store["#{name}"]                                 #     store["user_name"]
           else                                               #   else
@@ -105,20 +118,19 @@ module SerializeAttributes
               .default(:#{name}, self)                       #       .default(:user_name, self)
           end                                                #   end
         end                                                  # end
-
+                                                             #
         def #{name}=(value)                                  # def user_name=(value)
           cast_value = self.class                            #   cast_value = self.class
             .serialized_attributes_store(:#{@column_name})   #     .serialized_attributes_store(:settings)
             .cast(:#{name}, value)                           #     .cast(:user_name, value)
           store = public_send(:#{@column_name})              #   store = public_send(:settings)
                                                              #
-          if #{arr} && cast_value == ArrayWrapper::EMPTY     #   if false && cast_value == ArrayWrapper::EMPTY
+          if #{arr} && cast_value == ArrayWrapper::EMPTY     #   if arr && cast_value == ArrayWrapper::EMPTY
             store.delete("#{name}")                          #     store.delete("user_name")
           else                                               #   else
             store.merge!("#{name}" => cast_value)            #     store.merge!("user_name" => cast_value)
           end                                                #   end
-                                                             #
-          self.public_send(:#{@column_name}=, store)         #   self.public_send(:settings=, store)
+          public_send(:#{@column_name}=, store)              #   public_send(:settings=, store)
         end                                                  # end
       RUBY
     end
