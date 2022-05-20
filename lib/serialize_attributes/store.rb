@@ -98,15 +98,12 @@ module SerializeAttributes
 
       @model_class.module_eval <<~RUBY, __FILE__, __LINE__ + 1
         def #{name}                                          # def user_name
-          if public_send(:respond_to?, :changed?)            #   if respond_to?(:changed?)
+          if instance_variable_get(:@_bad_typcasting)        #   if instance_variable_get(:@_bad_typcasting)
             store =                                          #     store =
               public_send(:read_attribute_before_type_cast,  #       read_attribute_before_type_cast(:settings)
                           :#{@column_name})                  #
+            instance_variable_set(:@_bad_typcasting, false)  #     instance_variable_set(:@_bad_typcasting, false)
           else                                               #   else
-            store = public_send(:#{@column_name})            #     store = public_send(:settings)
-          end                                                #   end
-                                                             #
-          if store.is_a?(String)                             #   store.is_a?(String)
             store = public_send(:#{@column_name})            #     store = public_send(:settings)
           end                                                #   end
                                                              #
@@ -131,6 +128,14 @@ module SerializeAttributes
             store.merge!("#{name}" => cast_value)            #     store.merge!("user_name" => cast_value)
           end                                                #   end
           public_send(:#{@column_name}=, store)              #   public_send(:settings=, store)
+                                                             #
+          values_before_typecast = store.values              #   values_before_typecast = store.values
+          values_after_typecast =                            #   values_after_typecast =
+            public_send(:#{@column_name}).values             #     public_send(:settings).values
+          instance_variable_set(                             #   instance_variable_set(
+            :@_bad_typcasting,                               #     :@_bad_typcasting,
+            values_before_typecast != values_after_typecast  #     values_before_typecast != values_after_typecast
+          )                                                  #   )
         end                                                  # end
       RUBY
     end
