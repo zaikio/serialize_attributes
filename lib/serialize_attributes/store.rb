@@ -47,9 +47,10 @@ module SerializeAttributes
     #    Model.serialized_attributes_store(:settings).cast(:user_name, 42)
     #    => "42"
     def cast(name, value)
-      # @attributes[name.to_sym] returns the Type as defined in ActiveModel::Type.
+      # @attributes.fetch(name.to_sym) returns the Type as defined in ActiveModel::Type or
+      # raise an error if the type is unknown.
       # Type::Integer.new.cast("42") => 42
-      @attributes[name.to_sym].cast(value)
+      @attributes.fetch(name.to_sym).cast(value)
     end
 
     # Deserialize a stored attribute using the value from the database (or elsewhere)
@@ -98,11 +99,12 @@ module SerializeAttributes
 
       @model_class.module_eval <<~RUBY, __FILE__, __LINE__ + 1
         def #{name}                                          # def user_name
-          if instance_variable_get(:@_bad_typcasting)        #   if instance_variable_get(:@_bad_typcasting)
+          if @_bad_typcasting                                #   if @_bad_typcasting
             store =                                          #     store =
-              public_send(:read_attribute_before_type_cast,  #       read_attribute_before_type_cast(:settings)
-                          :#{@column_name})                  #
-            instance_variable_set(:@_bad_typcasting, false)  #     instance_variable_set(:@_bad_typcasting, false)
+              read_attribute_before_type_cast(               #       read_attribute_before_type_cast(
+                :#{@column_name}                             #         :settings
+              )                                              #       )
+            @_bad_typcasting = false                         #     @_bad_typcasting = false
           else                                               #   else
             store = public_send(:#{@column_name})            #     store = public_send(:settings)
           end                                                #   end
@@ -132,10 +134,8 @@ module SerializeAttributes
           values_before_typecast = store.values              #   values_before_typecast = store.values
           values_after_typecast =                            #   values_after_typecast =
             public_send(:#{@column_name}).values             #     public_send(:settings).values
-          instance_variable_set(                             #   instance_variable_set(
-            :@_bad_typcasting,                               #     :@_bad_typcasting,
-            values_before_typecast != values_after_typecast  #     values_before_typecast != values_after_typecast
-          )                                                  #   )
+          @_bad_typcasting =                                 #     @_bad_typcasting =
+            values_before_typecast != values_after_typecast  #       values_before_typecast != values_after_typecast
         end                                                  # end
       RUBY
     end

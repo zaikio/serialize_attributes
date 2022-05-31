@@ -2,7 +2,6 @@
 
 require "test_helper"
 
-# rubocop:disable Metrics/ClassLength
 class SerializeAttributesTest < ActiveSupport::TestCase
   test "loading and reloading a complex model" do
     record = MyModel.create!(normal_column: "yes", data: { "booly" => false, "stringy" => "present" })
@@ -146,4 +145,3 @@ class SerializeAttributesTest < ActiveSupport::TestCase
     assert_raises(NoMethodError) { store.attribute(:foo, :string) }
   end
 end
-# rubocop:enable Metrics/ClassLength
