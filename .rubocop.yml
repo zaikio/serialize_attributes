@@ -17,3 +17,7 @@ Gemspec/RequireMFA:
 
 Metrics/MethodLength:
   Max: 12
+
+Metrics/ClassLength:
+  Exclude:
+    - test/**/*_test.rb
