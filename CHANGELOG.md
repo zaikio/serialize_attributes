@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1]
+
+* Fix typecasting of BigDecimal just after creation of object
+* Add descriptive error message when deserializing a non-existing attribute
+
 ## [0.4.0]
 
 * Add support for listing array attributes

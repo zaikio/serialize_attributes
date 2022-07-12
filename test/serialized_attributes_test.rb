@@ -144,4 +144,10 @@ class SerializeAttributesTest < ActiveSupport::TestCase
     assert_raises(FrozenError) { store.instance_variable_set(:@model_class, "value") }
     assert_raises(NoMethodError) { store.attribute(:foo, :string) }
   end
+
+  test "calling #deserialize with a non-existing attribute" do
+    ex = assert_raises { MyModel.serialized_attributes_store(:data).deserialize(:chunky_bacon, 0) }
+    assert_equal "The attribute chunky_bacon is not define in serialize_attribute method in the MyModel class.",
+                 ex.message
+  end
 end
