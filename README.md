@@ -7,7 +7,7 @@ class MyModel
   serialize_attributes :settings do
     attribute :user_name, :string
     attribute :subscribed, :boolean, default: false
-    attribute :subscriptions, :string, array: true 
+    attribute :subscriptions, :string, array: true
   end
 end
 ```
@@ -143,6 +143,54 @@ specify a `default` attribute yourself explicitly:
 
 ```ruby
 attribute :emails, :string, array: true, default: ["unknown@example.com"]
+```
+
+### Enumerated ("enum") types
+
+Since enum types are a common thing when managing external data, there is a special enum
+type defined by the library:
+
+```ruby
+class MyModel
+  serialize_attributes :settings do
+    attribute :state, :enum, of: ["open", "closed"]
+  end
+end
+```
+
+Unlike `ActiveRecord::Enum`, enums here work by attaching an inclusion validator to your
+model. So for example, with the above code, I'll get a validation failure by default:
+
+```ruby
+MyModel.new(state: nil).tap(&:valid?).errors
+#=> { state: "is not included in the list" }
+```
+
+If you wish to allow nil values in your enum, you should add it to the `of` collection:
+
+```ruby
+attribute :state, :enum, of: [nil, "open", "closed"]
+```
+
+The column is probably now the source of truth for correct values, so you can also
+introspect the store to fetch these from elsewhere (e.g. for building documentation):
+
+```ruby
+MyModel.serialized_attributes_store(:settings).enum_options(:state)
+#=> ["open", "closed"]
+```
+
+Finally, you can also use complex types within the enum itself, by passing an additional
+`type:` attribute. Values will then be cast or deserialized per that type, and the result
+of the casting is what is validated, e.g:
+
+```ruby
+attribute :state, :enum, of: [nil, true, false], type: :boolean
+```
+
+```ruby
+MyModel.new(state: "f").state
+#=> false
 ```
 
 ### Usage with ActiveModel alone

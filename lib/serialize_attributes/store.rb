@@ -19,16 +19,16 @@ module SerializeAttributes
     # Get a list of the attributes managed by this store. Pass an optional `type` argument
     # to filter attributes by their type.
     #
-    #   Model.serialize_attributes_store(:settings).attribute_names
+    #   Model.serialized_attributes_store(:settings).attribute_names
     #   => [:user_name, :subscribed, :subscriptions]
     #
-    #   Model.serialize_attributes_store(:settings).attribute_names(type: :string)
+    #   Model.serialized_attributes_store(:settings).attribute_names(type: :string)
     #   => [:user_name, :subscriptions]
     #
-    #  Model.serialize_attributes_store(:settings).attribute_names(type: :string, array: true)
+    #  Model.serialized_attributes_store(:settings).attribute_names(type: :string, array: true)
     #  => [:subscriptions]
     #
-    #  Model.serialize_attributes_store(:settings).attribute_names(type: :string, array: false)
+    #  Model.serialized_attributes_store(:settings).attribute_names(type: :string, array: false)
     #  => [:user_name]
     #
     #
@@ -40,6 +40,17 @@ module SerializeAttributes
       else
         attributes
       end.keys
+    end
+
+    # Get a list of enumerated options for the column `name` in this store.
+    #
+    #   Model.serialized_attributes_store(:settings).enum_options(:enumy)
+    #   => [nil, "placed", "confirmed"]
+    def enum_options(name)
+      type = @attributes.fetch(name.to_sym)
+      raise ArgumentError, "`#{name}` attribute is not an enum type" unless type.respond_to?(:options)
+
+      type.options
     end
 
     # Cast a stored attribute against a given name
@@ -102,6 +113,8 @@ module SerializeAttributes
       elsif array
         @defaults[name] = []
       end
+
+      type.attach_validations_to(@model_class, name) if type.respond_to?(:attach_validations_to)
 
       @model_class.module_eval <<~RUBY, __FILE__, __LINE__ + 1
         def #{name}                                          # def user_name
