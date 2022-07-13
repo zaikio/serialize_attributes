@@ -58,7 +58,12 @@ module SerializeAttributes
     #   Model.serialized_attributes_store(:settings).deserialize(:subscribed, "0")
     #   => false
     def deserialize(name, value)
-      @attributes[name.to_sym].deserialize(value)
+      attribute = @attributes[name.to_sym]
+      if attribute.nil?
+        raise "The attribute #{name} is not define in serialize_attribute method in the #{@model_class} class."
+      end
+
+      attribute.deserialize(value)
     end
 
     # Retrieve the default value for a given block. If the default is a Proc, it can be
