@@ -70,6 +70,17 @@ class SerializeAttributesTest < ActiveSupport::TestCase
     assert_equal BigDecimal("0.42"), record.height
   end
 
+  test "enums return validation failures with unknown values" do
+    record = MyModel.new(enumy: "placed")
+    assert record.valid?
+
+    record.enumy = "unknown"
+    assert_not record.valid?
+
+    record.enumy = "confirmed"
+    assert record.valid?
+  end
+
   test "defaults supports a Proc referencing other parts of the record" do
     second = Class.new(MyModel) do
       self.table_name = :my_models
@@ -124,14 +135,15 @@ class SerializeAttributesTest < ActiveSupport::TestCase
         timestamp: Time.zone.at(0),
         listy: [],
         listy_default: ["first"],
-        listy_integer: []
+        listy_integer: [],
+        enumy: nil
       },
       record.serialized_attributes_on(:data)
     )
   end
 
   test ".serialized_attribute_names" do
-    assert_equal %i[booly booly_default stringy timestamp listy listy_default listy_integer],
+    assert_equal %i[booly booly_default stringy timestamp listy listy_default listy_integer enumy],
                  MyModel.serialized_attribute_names(:data)
 
     assert_equal %i[booly booly_default], MyModel.serialized_attribute_names(:data, :boolean)

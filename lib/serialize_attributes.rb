@@ -2,6 +2,7 @@
 
 require "serialize_attributes/version"
 require "serialize_attributes/store"
+require "serialize_attributes/types/enum"
 
 # Serialize ActiveModel attributes in JSON using type casting
 module SerializeAttributes
