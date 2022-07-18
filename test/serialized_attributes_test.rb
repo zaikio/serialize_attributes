@@ -162,4 +162,18 @@ class SerializeAttributesTest < ActiveSupport::TestCase
     assert_equal "The attribute chunky_bacon is not define in serialize_attribute method in the MyModel class.",
                  ex.message
   end
+
+  test "should not be possible to use enums and arrays together" do
+    ex = assert_raises(ArgumentError) do
+      Class.new do
+        include SerializeAttributes
+
+        serialize_attributes :settings do
+          attribute :foo, :enum, of: [1, 2, 3], array: true
+        end
+      end
+    end
+
+    assert_equal "Enum-arrays not currently supported", ex.message
+  end
 end
