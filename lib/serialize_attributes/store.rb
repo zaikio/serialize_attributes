@@ -104,7 +104,12 @@ module SerializeAttributes
     def attribute(name, type, default: NO_DEFAULT, array: false, **type_options)
       name = name.to_sym
       type = ActiveModel::Type.lookup(type, **type_options) if type.is_a?(Symbol)
-      type = ArrayWrapper.new(type) if array
+
+      if array
+        raise ArgumentError, "Enum-arrays not currently supported" if type.is_a?(Types::Enum)
+
+        type = ArrayWrapper.new(type)
+      end
 
       @attributes[name] = type
 

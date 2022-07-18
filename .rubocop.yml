@@ -19,7 +19,7 @@ Metrics/AbcSize:
   Enabled: false
 
 Metrics/MethodLength:
-  Max: 12
+  Max: 14
 
 Metrics/ClassLength:
   Exclude:
