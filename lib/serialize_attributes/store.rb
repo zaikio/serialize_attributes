@@ -88,17 +88,18 @@ module SerializeAttributes
       end
     end
 
-    def attribute(name, type, **options)
+    NO_DEFAULT = Object.new
+
+    def attribute(name, type, default: NO_DEFAULT, array: false, **type_options)
       name = name.to_sym
-      arr = options.delete(:array) { false }
-      type = ActiveModel::Type.lookup(type, **options.except(:default)) if type.is_a?(Symbol)
-      type = ArrayWrapper.new(type) if arr
+      type = ActiveModel::Type.lookup(type, **type_options) if type.is_a?(Symbol)
+      type = ArrayWrapper.new(type) if array
 
       @attributes[name] = type
 
-      if options.key?(:default)
-        @defaults[name] = options[:default]
-      elsif arr
+      if default != NO_DEFAULT
+        @defaults[name] = default
+      elsif array
         @defaults[name] = []
       end
 
@@ -129,7 +130,7 @@ module SerializeAttributes
             .cast(:#{name}, value)                           #     .cast(:user_name, value)
           store = public_send(:#{@column_name})              #   store = public_send(:settings)
                                                              #
-          if #{arr} && cast_value == ArrayWrapper::EMPTY     #   if arr && cast_value == ArrayWrapper::EMPTY
+          if #{array} && cast_value == ArrayWrapper::EMPTY   #   if array && cast_value == ArrayWrapper::EMPTY
             store.delete("#{name}")                          #     store.delete("user_name")
           else                                               #   else
             store.merge!("#{name}" => cast_value)            #     store.merge!("user_name" => cast_value)
