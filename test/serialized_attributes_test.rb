@@ -159,8 +159,15 @@ class SerializeAttributesTest < ActiveSupport::TestCase
 
   test "calling #deserialize with a non-existing attribute" do
     ex = assert_raises { MyModel.serialized_attributes_store(:data).deserialize(:chunky_bacon, 0) }
-    assert_equal "The attribute chunky_bacon is not define in serialize_attribute method in the MyModel class.",
+    assert_equal "The attribute chunky_bacon is not defined in serialize_attribute method in the MyModel class.",
                  ex.message
+  end
+
+  test "predicated methods are included" do
+    record = MyModel.create!(data: { "booly" => false, "timestamp" => nil, "listy" => [] })
+
+    assert_equal false, record.booly?
+    assert_equal false, record.timestamp?
   end
 
   test "should not be possible to use enums and arrays together" do

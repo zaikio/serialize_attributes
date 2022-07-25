@@ -71,7 +71,7 @@ module SerializeAttributes
     def deserialize(name, value)
       attribute = @attributes[name.to_sym]
       if attribute.nil?
-        raise "The attribute #{name} is not define in serialize_attribute method in the #{@model_class} class."
+        raise "The attribute #{name} is not defined in serialize_attribute method in the #{@model_class} class."
       end
 
       attribute.deserialize(value)
@@ -139,6 +139,12 @@ module SerializeAttributes
             self.class                                       #     self.class
               .serialized_attributes_store(:#{@column_name}) #       .serialized_attributes_store(:settings)
               .default(:#{name}, self)                       #       .default(:user_name, self)
+          end                                                #   end
+        end                                                  # end
+                                                             #
+        unless #{array}                                      # unless array
+          def #{name}?                                       #   def user_name?
+            query_attribute("#{name}")                       #     query_attribute(:user_name)
           end                                                #   end
         end                                                  # end
                                                              #
