@@ -63,6 +63,16 @@ record
 #=> #<MyModel id: 1, settings: { user_name: "Nick", subscribed: true }>
 ```
 
+Additionally you can use predicated methods the same way you do with an ActiveRecord's attribute.
+Indeed behind the curtain we use `ActiveRecord::AttributeMethods::Query`.
+
+```ruby
+record.subscribed?
+#=> false
+record.user_name?
+#=> true
+```
+
 ### Getting all of the stored attributes
 
 Default values are not automatically persisted to the database, so there is a helper
