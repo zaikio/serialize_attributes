@@ -60,13 +60,32 @@ class SerializeAttributesTest < ActiveSupport::TestCase
         attribute :height, :decimal
       end
     end
-    record = klass.new(height: BigDecimal("0.42"))
 
+    record = klass.new(height: BigDecimal("0.42"))
     assert_equal BigDecimal("0.42"), record.height
 
     record.save!
-    record.reload
+    assert_equal BigDecimal("0.42"), record.height
 
+    record.reload
+    assert_equal BigDecimal("0.42"), record.height
+
+    record.update(height: BigDecimal("0.21"))
+    assert_equal BigDecimal("0.21"), record.height
+  end
+
+  test "Assigning other attributes doesn't interfer with bigdecimal typecasting" do
+    klass = Class.new(MyModel) do
+      serialize_attributes :data do
+        attribute :stringy, :string
+        attribute :height,  :decimal
+      end
+    end
+
+    record = klass.new(height: 0.42)
+    assert_equal BigDecimal("0.42"), record.height
+
+    record.assign_attributes stringy: "Chunky Bacon!"
     assert_equal BigDecimal("0.42"), record.height
   end
 
@@ -136,14 +155,15 @@ class SerializeAttributesTest < ActiveSupport::TestCase
         listy: [],
         listy_default: ["first"],
         listy_integer: [],
-        enumy: nil
+        enumy: nil,
+        decimy: nil
       },
       record.serialized_attributes_on(:data)
     )
   end
 
   test ".serialized_attribute_names" do
-    assert_equal %i[booly booly_default stringy timestamp listy listy_default listy_integer enumy],
+    assert_equal %i[booly booly_default stringy timestamp listy listy_default listy_integer enumy decimy],
                  MyModel.serialized_attribute_names(:data)
 
     assert_equal %i[booly booly_default], MyModel.serialized_attribute_names(:data, :boolean)

@@ -9,7 +9,7 @@ module SerializeAttributes
     end
 
     test ".attribute_names with array: true/false" do
-      assert_equal %i[booly booly_default stringy timestamp listy listy_default listy_integer enumy],
+      assert_equal %i[booly booly_default stringy timestamp listy listy_default listy_integer enumy decimy],
                    @store.attribute_names
 
       assert_equal %i[listy listy_default listy_integer],

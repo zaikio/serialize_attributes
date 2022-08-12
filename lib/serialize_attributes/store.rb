@@ -102,14 +102,10 @@ module SerializeAttributes
     NO_DEFAULT = Object.new
 
     def attribute(name, type, default: NO_DEFAULT, array: false, **type_options)
+      define_serialize_attribute_methods_on_instance
       name = name.to_sym
       type = ActiveModel::Type.lookup(type, **type_options) if type.is_a?(Symbol)
-
-      if array
-        raise ArgumentError, "Enum-arrays not currently supported" if type.is_a?(Types::Enum)
-
-        type = ArrayWrapper.new(type)
-      end
+      type = wrap_array(type) if array
 
       @attributes[name] = type
 
@@ -122,52 +118,67 @@ module SerializeAttributes
       type.attach_validations_to(@model_class, name) if type.respond_to?(:attach_validations_to)
 
       @model_class.module_eval <<~RUBY, __FILE__, __LINE__ + 1
-        def #{name}                                          # def user_name
-          if @_bad_typcasting                                #   if @_bad_typcasting
-            store =                                          #     store =
-              read_attribute_before_type_cast(               #       read_attribute_before_type_cast(
-                :#{@column_name}                             #         :settings
-              )                                              #       )
-            @_bad_typcasting = false                         #     @_bad_typcasting = false
-          else                                               #   else
-            store = public_send(:#{@column_name})            #     store = public_send(:settings)
-          end                                                #   end
-                                                             #
-          if store.key?("#{name}")                           #   if store.key?("user_name")
-            store["#{name}"]                                 #     store["user_name"]
-          else                                               #   else
-            self.class                                       #     self.class
-              .serialized_attributes_store(:#{@column_name}) #       .serialized_attributes_store(:settings)
-              .default(:#{name}, self)                       #       .default(:user_name, self)
-          end                                                #   end
-        end                                                  # end
-                                                             #
-        unless #{array}                                      # unless array
-          def #{name}?                                       #   def user_name?
-            query_attribute("#{name}")                       #     query_attribute(:user_name)
-          end                                                #   end
-        end                                                  # end
-                                                             #
-        def #{name}=(value)                                  # def user_name=(value)
-          cast_value = self.class                            #   cast_value = self.class
-            .serialized_attributes_store(:#{@column_name})   #     .serialized_attributes_store(:settings)
-            .cast(:#{name}, value)                           #     .cast(:user_name, value)
-          store = public_send(:#{@column_name})              #   store = public_send(:settings)
-                                                             #
-          if #{array} && cast_value == ArrayWrapper::EMPTY   #   if array && cast_value == ArrayWrapper::EMPTY
-            store.delete("#{name}")                          #     store.delete("user_name")
-          else                                               #   else
-            store.merge!("#{name}" => cast_value)            #     store.merge!("user_name" => cast_value)
-          end                                                #   end
-          public_send(:#{@column_name}=, store)              #   public_send(:settings=, store)
-                                                             #
-          values_before_typecast = store.values              #   values_before_typecast = store.values
-          values_after_typecast =                            #   values_after_typecast =
-            public_send(:#{@column_name}).values             #     public_send(:settings).values
-          @_bad_typcasting =                                 #     @_bad_typcasting =
-            values_before_typecast != values_after_typecast  #       values_before_typecast != values_after_typecast
-        end                                                  # end
+        def #{name}                                            # def user_name
+          store = public_send(:#{@column_name})                #   store = public_send(:settings)
+          if store.key?("#{name}")                             #   if store.key?("user_name")
+            value = store["#{name}"]                           #     value = store["user_name"]
+            # Decimal typecasting fails in the setter (public_send(:settings=, store)) after
+            # an attribute is assigned, even a non decimal attribute. Typecasting is fine
+            # when reading from the DB or after save. So we check for store that have been
+            # assigned but not saved and decimal.
+            return value unless @attributes["#{@column_name}"] #   return value unless @attributes["settings"]
+              .came_from_user? && _decimal?("#{name}")         #      .came_from_user? && _decimal?("user_name")
+                                                               #
+            _cast(:#{name}, value)                             #     _cast(:user_name, value)
+          else                                                 #   else
+            _store(:#{@column_name}).default(:#{name}, self)   #     _store(:setting).default(:user_name, self)
+          end                                                  #   end
+        end                                                    # end
+                                                               #
+        unless #{array}                                        # unless array
+          def #{name}?                                         #   def user_name?
+            query_attribute("#{name}")                         #     query_attribute(:user_name)
+          end                                                  #   end
+        end                                                    # end
+                                                               #
+        def #{name}=(value)                                    # def user_name=(value)
+          cast_value = _cast(:#{name}, value)                  #   cast_value = _cast(:user_name, value)
+          store = public_send(:#{@column_name})                #   store = public_send(:settings)
+                                                               #
+          if #{array} && cast_value == ArrayWrapper::EMPTY     #   if array && cast_value == ArrayWrapper::EMPTY
+            store.delete("#{name}")                            #     store.delete("user_name")
+          else                                                 #   else
+            store.merge!("#{name}" => cast_value)              #     store.merge!("user_name" => cast_value)
+          end                                                  #   end
+          public_send(:#{@column_name}=, store)                #   public_send(:settings=, store)
+        end                                                    # end
       RUBY
+    end
+
+    def define_serialize_attribute_methods_on_instance
+      return if @instance_methods_defined
+
+      @model_class.module_eval <<~RUBY, __FILE__, __LINE__ + 1
+        def _cast(attribute, value)                                                       # def _cast(attribute, value)
+          _store(:#{@column_name}).cast(attribute, value)                                 #   _store(:setting).cast(attribute, value)
+        end                                                                               # end
+                                                                                          #
+        def _decimal?(attribute)                                                          # def _decimal?(attribute)
+          _store(:#{@column_name}).instance_variable_get(:@attributes)[attribute.to_sym]  #   _store(:setting).instance_variable_get(:@attributes)[attribute.to_sym]
+            .class == ActiveModel::Type::Decimal                                          #     .class == ActiveModel::Type::Decimal
+        end                                                                               # end
+                                                                                          #
+        def _store(column_name)                                                           # def _store(column_name)
+          self.class.serialized_attributes_store(column_name)                             #   self.class.serialized_attributes_store(column_name)
+        end                                                                               # end
+      RUBY
+      @instance_methods_defined = true
+    end
+
+    def wrap_array(type)
+      raise ArgumentError, "Enum-arrays not currently supported" if type.is_a?(Types::Enum)
+
+      ArrayWrapper.new(type)
     end
 
     class ArrayWrapper < SimpleDelegator # :nodoc:

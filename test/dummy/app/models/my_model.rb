@@ -12,5 +12,7 @@ class MyModel < ApplicationRecord
     attribute :listy_integer, :integer, array: true
 
     attribute :enumy, :enum, of: [nil, "placed", "confirmed"]
+
+    attribute :decimy, :decimal
   end
 end
