@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0]
+
+This version moves some of the internals around. Now the store columns are modelled as an
+`ActiveModel::AttributeSet`, rather than a simple hash. This allows the library to do
+proper dirty tracking & casting, similar to how Rails itself works with regular attributes.
+
+As a result of this change, unfortunately two (unused) features had to be removed:
+
+* **BREAKING** Default values using a block are no longer supported
+* **BREAKING** `Store#default` no longer accepts a second `context` argument
+* **BREAKING** Arrays no longer support default values (default is always `[]`)
+
+However, the following features have been added:
+
+* Typecasting is now transparent to the user so complex types can be immediately read back
+  after setting
+
 ## [0.6.0]
 
 * Add predicated methods to attributes.
@@ -40,7 +57,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Initial release
 
-[Unreleased]: https://github.com/zaikio/serialize_attributes/compare/v0.6.0..HEAD
+[Unreleased]: https://github.com/zaikio/serialize_attributes/compare/v1.0.0..HEAD
+[1.0.0]: https://github.com/zaikio/serialize_attributes/compare/v0.6.0..v1.0.0
 [0.6.0]: https://github.com/zaikio/serialize_attributes/compare/v0.5.0..v0.6.0
 [0.5.0]: https://github.com/zaikio/serialize_attributes/compare/v0.4.1..v0.5.0
 [0.4.1]: https://github.com/zaikio/serialize_attributes/compare/v0.4.0..v0.4.1

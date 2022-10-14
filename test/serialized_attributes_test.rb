@@ -11,34 +11,34 @@ class SerializeAttributesTest < ActiveSupport::TestCase
     assert_equal true, record.booly_default
     assert_equal "present", record.stringy
     assert_equal [], record.listy
-    assert_equal ["first"], record.listy_default
+
+    record.booly = "true"
 
     record.save!
     record.reload
 
-    assert_equal false, record.booly
+    assert_equal true, record.booly
     assert_equal true, record.booly_default
     assert_equal "present", record.stringy
   end
 
   test "arrays can be created, modified and emptied" do
-    record = MyModel.create!(listy: %w[foo bar], listy_default: %w[second])
+    record = MyModel.create!(listy: %w[foo bar])
 
     assert_equal %w[foo bar], record.listy
-    assert_equal %w[second], record.listy_default
 
     record.listy << "baz"
     assert_equal %w[foo bar baz], record.listy
+    assert record.changed?
 
     record.save!
     record.reload
 
     assert_equal %w[foo bar baz], record.listy
 
-    record.update!(listy: nil, listy_default: nil)
+    record.update!(listy: nil)
 
     assert_equal [], record.listy
-    assert_equal ["first"], record.listy_default
   end
 
   test "casting to & from the database with timestamp" do
@@ -48,6 +48,8 @@ class SerializeAttributesTest < ActiveSupport::TestCase
     assert_equal timestamp, record.timestamp
 
     record.timestamp = Time.zone.at(1)
+    assert_equal record.timestamp, Time.zone.at(1)
+
     record.save!
     record.reload
 
@@ -55,19 +57,17 @@ class SerializeAttributesTest < ActiveSupport::TestCase
   end
 
   test "casting to and from the database with bigdecimal" do
-    klass = Class.new(MyModel) do
-      serialize_attributes :data do
-        attribute :height, :decimal
-      end
-    end
-    record = klass.new(height: BigDecimal("0.42"))
+    record = MyModel.new(decy: BigDecimal("0.42"))
 
-    assert_equal BigDecimal("0.42"), record.height
+    assert_equal BigDecimal("0.42"), record.decy
+
+    record.decy = BigDecimal("9.99")
+    assert_equal BigDecimal("9.99"), record.decy
 
     record.save!
     record.reload
 
-    assert_equal BigDecimal("0.42"), record.height
+    assert_equal BigDecimal("9.99"), record.decy
   end
 
   test "enums return validation failures with unknown values" do
@@ -79,23 +79,6 @@ class SerializeAttributesTest < ActiveSupport::TestCase
 
     record.enumy = "confirmed"
     assert record.valid?
-  end
-
-  test "defaults supports a Proc referencing other parts of the record" do
-    second = Class.new(MyModel) do
-      self.table_name = :my_models
-
-      serialize_attributes :data do
-        attribute :defaulty_block, :string, default: -> { secret }
-      end
-
-      def secret
-        "four"
-      end
-    end
-
-    record = second.new
-    assert_equal "four", record.defaulty_block
   end
 
   test "with a non-ActiveRecord model" do
@@ -121,7 +104,8 @@ class SerializeAttributesTest < ActiveSupport::TestCase
 
     assert_equal "Nick", record.user_name
     assert_equal BigDecimal("42.690"), record.height
-    assert_equal({ "user_name" => "Nick", "height" => BigDecimal("42.690") }, record.settings)
+
+    assert_equal({ "user_name" => "Nick", "height" => BigDecimal("42.690") }, record.settings.to_hash)
   end
 
   test "#serialized_attributes_on" do
@@ -134,25 +118,25 @@ class SerializeAttributesTest < ActiveSupport::TestCase
         stringy: nil,
         timestamp: Time.zone.at(0),
         listy: [],
-        listy_default: ["first"],
         listy_integer: [],
-        enumy: nil
+        enumy: nil,
+        decy: nil
       },
       record.serialized_attributes_on(:data)
     )
   end
 
   test ".serialized_attribute_names" do
-    assert_equal %i[booly booly_default stringy timestamp listy listy_default listy_integer enumy],
+    assert_equal %i[booly booly_default stringy timestamp listy listy_integer enumy decy],
                  MyModel.serialized_attribute_names(:data)
 
     assert_equal %i[booly booly_default], MyModel.serialized_attribute_names(:data, :boolean)
-    assert_equal %i[stringy listy listy_default], MyModel.serialized_attribute_names(:data, ActiveModel::Type::String)
+    assert_equal %i[stringy listy], MyModel.serialized_attribute_names(:data, ActiveModel::Type::String)
   end
 
   test "json store is immutable once setup" do
     store = MyModel.serialized_attributes_store(:data)
-    assert_raises(FrozenError) { store.instance_variable_set(:@attributes, {}) }
+    assert_raises(FrozenError) { store.instance_variable_set(:@attribute_types, {}) }
     assert_raises(FrozenError) { store.instance_variable_set(:@model_class, "value") }
     assert_raises(NoMethodError) { store.attribute(:foo, :string) }
   end
