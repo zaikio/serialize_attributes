@@ -7,10 +7,11 @@ class MyModel < ApplicationRecord
     attribute :timestamp, :datetime
 
     attribute :listy, :string, array: true
-    attribute :listy_default, :string, array: true, default: ["first"]
 
     attribute :listy_integer, :integer, array: true
 
     attribute :enumy, :enum, of: [nil, "placed", "confirmed"]
+
+    attribute :decy, :decimal
   end
 end

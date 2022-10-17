@@ -148,12 +148,7 @@ class MyModel
 end
 ```
 
-Please note that the default value for an array attribute is always `[]`, unless you
-specify a `default` attribute yourself explicitly:
-
-```ruby
-attribute :emails, :string, array: true, default: ["unknown@example.com"]
-```
+Please note that the default value for an array attribute is always `[]`.
 
 ### Enumerated ("enum") types
 
