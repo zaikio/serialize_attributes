@@ -25,3 +25,7 @@ Metrics/ClassLength:
   Exclude:
     - lib/serialize_attributes/store.rb
     - test/**/*_test.rb
+
+Style/FrozenStringLiteralComment:
+  Exclude:
+    - bin/*

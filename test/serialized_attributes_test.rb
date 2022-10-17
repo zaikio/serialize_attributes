@@ -167,4 +167,25 @@ class SerializeAttributesTest < ActiveSupport::TestCase
 
     assert_equal "Enum-arrays not currently supported", ex.message
   end
+
+  test "change tracking: no changes after loading record and reading attributes" do
+    record = MyModel.create!(normal_column: "yes", booly: false, stringy: "hello")
+
+    assert_not record.booly? # triggers actually reading the column value...
+    assert_not record.changed?, "Expected no changes, found: #{record.changes.as_json}"
+
+    record = MyModel.find(record.id)
+    assert_not record.changed?, "Expected no changes, found: #{record.changes.as_json}"
+
+    record.booly = true
+    assert record.changed?
+  end
+
+  test "change tracking: new records" do
+    record = MyModel.new
+    assert_not record.changed?
+
+    record.booly = true
+    assert record.changed?
+  end
 end

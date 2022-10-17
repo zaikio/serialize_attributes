@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    serialize_attributes (1.0.0)
+    serialize_attributes (1.0.1)
       activemodel (>= 6)
 
 GEM
