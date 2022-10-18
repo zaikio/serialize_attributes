@@ -150,6 +150,18 @@ module SerializeAttributes
       def deserialize(value)
         Array.wrap(value).map { __getobj__.deserialize(_1) }
       end
+
+      # For arrays of strings (the most common array type), the underlying Type::String in
+      # Rails won't do this check if the raw value isn't a String (and returns `nil`):
+      #
+      #   def changed_in_place?(a, b)
+      #     if a.is_a?(String)
+      #       ...
+      #
+      # This means we have to override this check ourselves here.
+      def changed_in_place?(raw_old_value, new_value)
+        raw_old_value != new_value
+      end
     end
 
     class AttributeSet < ::ActiveModel::AttributeSet # :nodoc:
@@ -176,7 +188,7 @@ module SerializeAttributes
       end
 
       def changed_in_place?(raw_original_value, new_value)
-        AttributeSet.new(raw_original_value) != new_value
+        (deserialize(raw_original_value) != new_value) || new_value.each_value.any?(&:changed_in_place?)
       end
 
       def serialize(value)

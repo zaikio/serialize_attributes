@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1]
+
+* Fix dirty tracking after loading records without mutating them
+
 ## [1.0.0]
 
 This version moves some of the internals around. Now the store columns are modelled as an
