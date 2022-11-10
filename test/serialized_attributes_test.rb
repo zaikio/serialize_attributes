@@ -76,6 +76,8 @@ class SerializeAttributesTest < ActiveSupport::TestCase
 
     record.enumy = "unknown"
     assert_not record.valid?
+    assert_includes record.errors.full_messages,
+                    "Enumy unknown is not one of (null), placed, confirmed"
 
     record.enumy = "confirmed"
     assert record.valid?

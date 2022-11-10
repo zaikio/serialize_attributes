@@ -1,0 +1,5 @@
+---
+en:
+  errors:
+    messages:
+      inclusion_with_options: "%{value} is not one of %{options}"

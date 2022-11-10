@@ -3,6 +3,8 @@
 require "serialize_attributes/version"
 require "serialize_attributes/store"
 require "serialize_attributes/types/enum"
+require "serialize_attributes/validators/inclusion_with_options_validator"
+require "serialize_attributes/railtie" if defined?(Rails::Railtie)
 
 # Serialize ActiveModel attributes in JSON using type casting
 module SerializeAttributes

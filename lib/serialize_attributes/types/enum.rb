@@ -30,7 +30,11 @@ module SerializeAttributes
       end
 
       def attach_validations_to(object, field_name)
-        object.validates_inclusion_of(field_name, in: @options)
+        object.validates_with(
+          Validators::InclusionWithOptionsValidator,
+          attributes: [field_name],
+          in: @options
+        )
       end
 
       delegate_missing_to :@type
