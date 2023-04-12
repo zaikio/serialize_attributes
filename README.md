@@ -19,10 +19,10 @@ end
 
 ## Quickstart
 
-Add `serialized_atributes` to your Gemfile:
+Add `serialize_atributes` to your Gemfile:
 
 ```bash
-$ bundle add serialized_atributes
+$ bundle add serialize_atributes
 ```
 
 Next, include `SerializeAttributes` in your model class (or `ApplicationRecord` if you want to make
